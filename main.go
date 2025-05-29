@@ -1,9 +1,13 @@
 package main
 
+import _ "github.com/lib/pq"	//this is the import for side effects
+
 import (
 	"fmt"
-	"github.com/uller91/goGator/internal/config"
 	"os"
+	"database/sql"
+	"github.com/uller91/goGator/internal/config"
+	"github.com/uller91/goGator/internal/database"
 )
 
 
@@ -23,11 +27,19 @@ func main() {
 	}
 	st.config = &cfg
 
+	dbUrl := st.config.GetUrl()
+	fmt.Println("Database URL:", dbUrl)
+	db, err := sql.Open("postgres", dbUrl)
+	st.database = database.New(db)	//database.Queries struct
+	
+
 	var cmds commands
 	handlers := make(map[string]func(*state, command) error)
 	cmds.handlers = handlers
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
+
 
 	args := os.Args[:]
 	if len(args) < 2 {

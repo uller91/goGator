@@ -15,6 +15,11 @@ const (
 type Config struct {
 	DbUrl		string	`json:"db_url"`
 	UserName	string	`json:"current_user_name"`
+	
+}
+
+func (c *Config) GetUrl() string {
+	return c.DbUrl
 }
 
 func (c *Config) SetUser(userName string) error {
@@ -27,7 +32,6 @@ func (c *Config) SetUser(userName string) error {
 
 	return nil
 }
-
 
 func write(cfg Config) error {
 	byteData, err := json.Marshal(cfg)

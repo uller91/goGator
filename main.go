@@ -28,7 +28,7 @@ func main() {
 	st.config = &cfg
 
 	dbUrl := st.config.GetUrl()
-	fmt.Println("Database URL:", dbUrl)
+	//fmt.Println("Database URL:", dbUrl)
 	db, err := sql.Open("postgres", dbUrl)
 	st.database = database.New(db)	//database.Queries struct
 	
@@ -39,6 +39,12 @@ func main() {
 
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerUsers)
+	cmds.register("agg", handlerAgg)
+	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerFeeds)
+
 
 
 	args := os.Args[:]

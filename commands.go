@@ -85,7 +85,7 @@ func handlerRegister(s *state, cmd command) error {
 	}
 
 	s.config.SetUser(cmd.arguments[0])
-	fmt.Printf("the user %v was created at %v, updated at %v with id %v\n", user.Name, user.CreatedAt, user.UpdatedAt, user.ID)
+	fmt.Printf("the user %v was created at %v\n", user.Name, user.CreatedAt)
 
 	return nil
 }
@@ -164,8 +164,14 @@ func handlerAddFeed(s *state, cmd command) error{
 			return err
 		}
 	}
-	
-	fmt.Printf("the feed %v was created at %v, updated at %v with id %v by user_id %v. Url: %v\n", feed.Name, feed.CreatedAt, feed.UpdatedAt, feed.ID, feed.UserID, feed.Url)
+
+	fmt.Printf("the feed %v was created at %v. Url: %v\n", feed.Name, feed.CreatedAt, feed.Url)
+
+	cmd.arguments = cmd.arguments[1:]
+	err = handlerFollow(s, cmd)
+	if err!= nil {
+			return err
+	} 
 
 	return nil
 }
@@ -190,3 +196,58 @@ func handlerFeeds(s *state, cmd command) error{
 
 	return nil
 }
+
+func handlerFollow(s *state, cmd command) error{
+	if len(cmd.arguments) != 1 {
+		return errors.New("1 argument is expected")
+	}
+
+	user, err := s.database.GetUser(context.Background(), s.config.UserName)
+	if err!= nil {
+			return err
+	} 
+	
+	feed, err := s.database.GetFeedUrl(context.Background(), cmd.arguments[0])
+	if err!= nil {
+			return err
+	} 
+
+	param := database.CreateFeedFollowParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), UserID: user.ID, FeedID: feed.ID}
+	_, err = s.database.CreateFeedFollow(context.Background(), param)
+	if err!= nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			return pqError
+		} else {
+			return err
+		}
+	}
+	
+	fmt.Printf("the user %v just followed the feed %v\n", user.Name, feed.Name)
+
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command) error{
+	if len(cmd.arguments) != 0 {
+		return errors.New("0 arguments are expected")
+	}
+
+	currentUser := s.config.UserName
+	user, err := s.database.GetUser(context.Background(), currentUser)
+	if err!= nil {
+			return err
+	} 
+
+	follows, err := s.database.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err!= nil {
+			return err
+	} 
+
+	fmt.Printf("Follows of the user  %v:\n", currentUser)
+	for _, follow := range follows {
+		fmt.Printf("* Feed  %v\n", follow.FeedName)
+	}
+
+	return nil
+}
+

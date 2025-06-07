@@ -28,3 +28,6 @@ on feed_follows.feed_id = feeds.id
 inner JOIN users
 on feed_follows.user_id = users.id
 WHERE feed_follows.user_id = $1;
+
+-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows where user_id = $1 and feed_id = $2;

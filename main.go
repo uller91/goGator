@@ -48,6 +48,8 @@ func main() {
 	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
+	cmds.register("aggTest", handlerAggTest) //single feed agg
+
 
 
 	args := os.Args[:]
@@ -69,18 +71,6 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-
-	/* 
-	err = st.config.SetUser("Ilya")
-	if err != nil {
-		fmt.Println(err)
-	}
-	
-	*st.config, err = config.Read()
-	fmt.Println("New .json!")
-	fmt.Println(st.config)
-	*/
 
 }
 

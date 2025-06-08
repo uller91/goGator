@@ -129,15 +129,25 @@ func handlerUsers(s *state, cmd command) error{
 }
 
 func handlerAgg(s *state, cmd command) error{
-	if len(cmd.arguments) != 0 {
-		return errors.New("0 arguments are expected")
+	if len(cmd.arguments) != 1 {								//time_between_reqs arugement
+		return errors.New("1 arguments are expected")
 	}
 
-	rss, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	timeBetweenRequests, err := time.ParseDuration(cmd.arguments[0])
 	if err!= nil {
-			return err
+		return err
 	} 
-	fmt.Println(rss)
+
+	ticker := time.NewTicker(timeBetweenRequests)
+	fmt.Printf("Collecting feeds every %v\n", timeBetweenRequests)
+	for ; ; <-ticker.C {
+		fmt.Println("\n*** Collecting feed... ***")
+		err = scrapeFeeds(s, context.Background())
+		if err!= nil {
+			return err
+		} 
+
+	}
 
 	return nil
 }
@@ -269,6 +279,19 @@ func handlerUnfollow(s *state, cmd command, user database.User) error{
 	}
 	
 	fmt.Printf("the user %v just unfollowed the feed %v\n", user.Name, feed.Name)
+
+	return nil
+}
+
+func handlerAggTest(s *state, cmd command) error{
+	if len(cmd.arguments) != 0 {
+		return errors.New("0 arguments are expected")
+	}
+
+	err := scrapeFeeds(s, context.Background())
+	if err!= nil {
+			return err
+	} 
 
 	return nil
 }

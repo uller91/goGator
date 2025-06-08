@@ -1,12 +1,15 @@
 package main
 
 import (
+	"github.com/uller91/goGator/internal/database"
 	"context"
 	"net/http"
 	"fmt"
 	"encoding/xml"
 	"html"
 	"io"
+	"github.com/lib/pq"
+	"time"
 )
 
 type RSSFeed struct {
@@ -61,4 +64,41 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	}
 
 	return &xmlData, nil
+}
+
+func scrapeFeeds(s *state, ctx context.Context) error {
+	nextFeed, err := s.database.GetNextFeedToFetch(ctx)
+	if err!= nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			return pqError
+		} else {
+			return err
+		}
+	}
+
+	fmt.Println(nextFeed.Name)
+	fmt.Println(nextFeed.LastFetchedAt)
+
+	param := database.MarkFeedFetchedParams{UpdatedAt: time.Now(), ID: nextFeed.ID}
+	markedFeed, err := s.database.MarkFeedFetched(ctx, param)
+	if err!= nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			return pqError
+		} else {
+			return err
+		}
+	}
+
+	rss, err := fetchFeed(ctx, markedFeed.Url)
+	if err!= nil {
+			return err
+	} 
+
+	fmt.Printf("Feed %v\n", rss.Channel.Title)
+	fmt.Println("Content:")
+	for _, item := range rss.Channel.Item {
+		fmt.Printf("* %v\n", item.Title)
+	}
+
+	return nil
 }

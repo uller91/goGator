@@ -10,6 +10,10 @@ import (
 	"io"
 	"github.com/lib/pq"
 	"time"
+	"github.com/google/uuid"
+	"database/sql"
+	"strings"
+	"log"
 )
 
 type RSSFeed struct {
@@ -94,11 +98,46 @@ func scrapeFeeds(s *state, ctx context.Context) error {
 			return err
 	} 
 
-	fmt.Printf("Feed %v\n", rss.Channel.Title)
-	fmt.Println("Content:")
+	//fmt.Printf("Feed %v\n", rss.Channel.Title)
+	//fmt.Println("Content:")
+
+
+
 	for _, item := range rss.Channel.Item {
-		fmt.Printf("* %v\n", item.Title)
+
+		publishedAt := sql.NullTime{}
+		if t, err := time.Parse(time.RFC1123Z, item.PubDate); err == nil {
+			publishedAt = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+
+		param := database.CreatePostParams{
+			ID: uuid.New(), 
+			CreatedAt: time.Now(), 
+			UpdatedAt: time.Now(), 
+			Title: item.Title, 
+			Url: item.Link, 
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  true,
+			},
+			PublishedAt: publishedAt,
+			FeedID: markedFeed.ID,
+		}
+
+		_, err := s.database.CreatePost(context.Background(), param)
+		if err!= nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			} else {
+				log.Printf("Couldn't create post: %v", err)
+				continue
+			}
+	}
 	}
 
+	log.Printf("Feed %v collected, %v posts found", markedFeed.Name, len(rss.Channel.Item))
 	return nil
 }

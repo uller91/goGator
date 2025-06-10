@@ -10,6 +10,7 @@ import (
 	"time"
 	"os"
 	"github.com/lib/pq"
+	"strconv"
 )
 
 type state struct {
@@ -292,6 +293,42 @@ func handlerAggTest(s *state, cmd command) error{
 	if err!= nil {
 			return err
 	} 
+
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error{
+	if len(cmd.arguments) > 1 {
+		return errors.New("0 or 1 argument are expected")
+	}
+
+	limit := 2
+	if len(cmd.arguments) == 1 {
+		if i, err := strconv.Atoi(cmd.arguments[0]); err == nil {
+			limit = i
+		} else {
+			return err
+		}
+	}
+
+	param := database.GetPostForUserParams{UserID: user.ID, Limit: int32(limit)}
+	posts, err := s.database.GetPostForUser(context.Background(), param)
+	if err!= nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			return pqError
+		} else {
+			return err
+		}
+	}
+
+	fmt.Printf("posts found for user %v:\n", user.Name)
+	for _, post := range posts {
+		fmt.Printf("%v from %v\n", post.PublishedAt.Time.Format("Mon Jan 2"), post.FeedName)
+		fmt.Printf("* %v\n", post.Title)
+		fmt.Printf("	%v\n", post.Description.String)
+		fmt.Printf("Link: %v\n", post.Url)
+		fmt.Println("")
+	}
 
 	return nil
 }

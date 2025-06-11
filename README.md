@@ -24,7 +24,7 @@ GoGator accepts a few commandas and mandatory/optional arguments to run (goGator
 5. **addfeed** "name" "url" - registers the rss-feed at url with the name;
 6. **feeds** - shows the list of registered feeds;
 7. **follow** "url" - to follow the registered feed by url with the current user;
-8. **unfollow** "url - to unfollow the registered feed by url with the current user;
+8. **unfollow** "url" - to unfollow the registered feed by url with the current user;
 9. **following** - shows the list of the feeds the current user is following;
 10. **agg** time_delay - fetches the rss feeds, one at a time, from the registered url (starting from oldest) and saves the posts into the database. The fetch happens every time delay. Time format: 1m (for 1 mintute), 1h (for 1 hour). Please do not run it shorter than 1 minute.
 This command runs an infinite loop. For this reason, run the second instance of the goGator for the posts aggregation or aggregate and then use Ctrl+C to stop it and continue using other commands.

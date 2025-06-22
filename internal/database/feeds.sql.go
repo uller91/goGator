@@ -57,7 +57,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const getFeedName = `-- name: GetFeedName :one
-SELECT name FROM users WHERE id = $1
+SELECT name FROM feeds WHERE id = $1
 `
 
 func (q *Queries) GetFeedName(ctx context.Context, id uuid.UUID) (string, error) {

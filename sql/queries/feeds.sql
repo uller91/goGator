@@ -17,7 +17,7 @@ SELECT * FROM feeds;
 SELECT * FROM feeds WHERE url = $1;
 
 -- name: GetFeedName :one
-SELECT name FROM users WHERE id = $1;
+SELECT name FROM feeds WHERE id = $1;
 
 -- name: MarkFeedFetched :one
 Update feeds set updated_at = $1, last_fetched_at = $1 WHERE id = $2
